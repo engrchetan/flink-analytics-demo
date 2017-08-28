@@ -31,9 +31,9 @@ public class AnalyticsManager {
 	private Map<String, DataStream<Product>> productStreamByModel = new HashMap<>();
 	
 	public void startPricing(StreamExecutionEnvironment executionEnvironment) {
-		marketDataSource = executionEnvironment.addSource(new MarketDataGenerator());
+		marketDataSource = executionEnvironment.addSource(new MarketDataGenerator(), "MARKET_STREAM");
 		allProductGrid = executionEnvironment.fromElements(ProductConfigData.PRODUCT_GRID);
-		connectedIterativeStream = allProductGrid.setParallelism(1).iterate().withFeedbackType(Product.class);
+		connectedIterativeStream = allProductGrid.name("PRODUCT_CONFIG_STREAM").setParallelism(1).iterate().withFeedbackType(Product.class);
 		consolidatedResults = connectedIterativeStream.flatMap(new IterationResultConsolidator()).name("GRID_RESULT_CONSOLIDATOR").forceNonParallel();
 		productStream = consolidatedResults.flatMap(new GridToProduct()).name("DISTRIBUTE_PRODUCTS_TO_PRICE").rebalance();
 
